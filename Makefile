@@ -30,8 +30,8 @@ cc-option=$(shell if test -z "`$(1) $(2) -S -o /dev/null -xc /dev/null 2>&1`" \
     ; then echo "$(2)"; else echo "$(3)"; fi ;)
 
 CFLAGS := -iquote $(OUT) -iquote src -iquote $(OUT)board-generic/ \
-		-std=gnu11 -O2 -MD -Wall \
-		-Wold-style-definition $(call cc-option,$(CC),-Wtype-limits,) \
+        -std=gnu11 -O2 -MD -Wall \
+        -Wold-style-definition $(call cc-option,$(CC),-Wtype-limits,) \
     -ffunction-sections -fdata-sections -fno-delete-null-pointer-checks
 CFLAGS += -flto=auto -fwhole-program -fno-use-linker-plugin -ggdb3
 
@@ -61,60 +61,60 @@ include src/Makefile
 ################ Main build rules
 
 $(OUT)%.o: %.c $(OUT)autoconf.h
-	@echo "  Compiling $@"
-	$(Q)$(CC) $(CFLAGS) -c $< -o $@
+    @echo "  Compiling $@"
+    $(Q)$(CC) $(CFLAGS) -c $< -o $@
 
 $(OUT)%.ld: %.lds.S $(OUT)autoconf.h
-	@echo "  Preprocessing $@"
-	$(Q)$(CPP) -I$(OUT) -P -MD -MT $@ $< -o $@
+    @echo "  Preprocessing $@"
+    $(Q)$(CPP) -I$(OUT) -P -MD -MT $@ $< -o $@
 
 $(OUT)klipper.elf: $(OBJS_klipper.elf)
-	@echo "  Linking $@"
-	$(Q)$(CC) $(OBJS_klipper.elf) $(CFLAGS_klipper.elf) -o $@
-	$(Q)scripts/check-gcc.sh $@ $(OUT)compile_time_request.o
+    @echo "  Linking $@"
+    $(Q)$(CC) $(OBJS_klipper.elf) $(CFLAGS_klipper.elf) -o $@
+    $(Q)scripts/check-gcc.sh $@ $(OUT)compile_time_request.o
 
 ################ Compile time requests
 
 $(OUT)%.o.ctr: $(OUT)%.o
-	$(Q)$(OBJCOPY) -j '.compile_time_request' -O binary $^ $@
+    $(Q)$(OBJCOPY) -j '.compile_time_request' -O binary $^ $@
 
 $(OUT)compile_time_request.o: $(patsubst %.c, $(OUT)src/%.o.ctr,$(src-y)) ./scripts/buildcommands.py
-	@echo "  Building $@"
-	$(Q)cat $(patsubst %.c, $(OUT)src/%.o.ctr,$(src-y)) | tr -s '\0' '\n' > $(OUT)compile_time_request.txt
-	$(Q)$(PYTHON) ./scripts/buildcommands.py -d $(OUT)klipper.dict -t "$(CC);$(AS);$(LD);$(OBJCOPY);$(OBJDUMP);$(STRIP)" $(OUT)compile_time_request.txt $(OUT)compile_time_request.c
-	$(Q)$(CC) $(CFLAGS) -c $(OUT)compile_time_request.c -o $@
+    @echo "  Building $@"
+    $(Q)cat $(patsubst %.c, $(OUT)src/%.o.ctr,$(src-y)) | tr -s '\0' '\n' > $(OUT)compile_time_request.txt
+    $(Q)$(PYTHON) ./scripts/buildcommands.py -d $(OUT)klipper.dict -t "$(CC);$(AS);$(LD);$(OBJCOPY);$(OBJDUMP);$(STRIP)" $(OUT)compile_time_request.txt $(OUT)compile_time_request.c
+    $(Q)$(CC) $(CFLAGS) -c $(OUT)compile_time_request.c -o $@
 
 ################ Auto generation of "board/" include file link
 
 create-board-link:
-	@echo "  Creating symbolic link $(OUT)board"
-	$(Q)mkdir -p $(addprefix $(OUT), $(dirs-y))
-	$(Q)rm -f $(OUT)*.d $(patsubst %,$(OUT)%/*.d,$(dirs-y))
-	$(Q)rm -f $(OUT)board
-	$(Q)ln -sf $(CURDIR)/src/$(CONFIG_BOARD_DIRECTORY) $(OUT)board
-	$(Q)mkdir -p $(OUT)board-generic
-	$(Q)rm -f $(OUT)board-generic/board
-	$(Q)ln -sf $(CURDIR)/src/generic $(OUT)board-generic/board
+    @echo "  Creating symbolic link $(OUT)board"
+    $(Q)mkdir -p $(addprefix $(OUT), $(dirs-y))
+    $(Q)rm -f $(OUT)*.d $(patsubst %,$(OUT)%/*.d,$(dirs-y))
+    $(Q)rm -f $(OUT)board
+    $(Q)ln -sf $(CURDIR)/src/$(CONFIG_BOARD_DIRECTORY) $(OUT)board
+    $(Q)mkdir -p $(OUT)board-generic
+    $(Q)rm -f $(OUT)board-generic/board
+    $(Q)ln -sf $(CURDIR)/src/generic $(OUT)board-generic/board
 
 # Hack to rebuild OUT directory and reload make dependencies on Kconfig change
 $(OUT)board-link: $(KCONFIG_CONFIG)
-	$(Q)mkdir -p $(OUT)
-	$(Q)echo "# Makefile board-link rule" > $@
-	$(Q)$(MAKE) create-board-link
+    $(Q)mkdir -p $(OUT)
+    $(Q)echo "# Makefile board-link rule" > $@
+    $(Q)$(MAKE) create-board-link
 include $(OUT)board-link
 
 ################ Kconfig rules
 
 $(OUT)autoconf.h: $(KCONFIG_CONFIG)
-	@echo "  Building $@"
-	$(Q)mkdir -p $(OUT)
-	$(Q) KCONFIG_AUTOHEADER=$@ $(PYTHON) lib/kconfiglib/genconfig.py src/Kconfig
+    @echo "  Building $@"
+    $(Q)mkdir -p $(OUT)
+    $(Q) KCONFIG_AUTOHEADER=$@ $(PYTHON) lib/kconfiglib/genconfig.py src/Kconfig
 
 $(KCONFIG_CONFIG) olddefconfig: src/Kconfig
-	$(Q)$(PYTHON) lib/kconfiglib/olddefconfig.py src/Kconfig
+    $(Q)$(PYTHON) lib/kconfiglib/olddefconfig.py src/Kconfig
 
 menuconfig:
-	$(Q)$(PYTHON) lib/kconfiglib/menuconfig.py src/Kconfig
+    $(Q)$(PYTHON) lib/kconfiglib/menuconfig.py src/Kconfig
 
 ################ Generic rules
 
@@ -125,9 +125,9 @@ menuconfig:
 all: $(target-y)
 
 clean:
-	$(Q)rm -rf $(OUT)
+    $(Q)rm -rf $(OUT)
 
 distclean: clean
-	$(Q)rm -f .config .config.old
+    $(Q)rm -f .config .config.old
 
 -include $(OUT)*.d $(patsubst %,$(OUT)%/*.d,$(dirs-y))

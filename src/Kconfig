@@ -234,3 +234,17 @@ config INLINE_STEPPER_HACK
     bool
     depends on HAVE_GPIO
     default y
+
+# Add configuration entry for SAM3U4
+config MACH_SAM3U4
+    bool "Atmel SAM3U4"
+    select HAVE_GPIO
+    select HAVE_PWM
+    select HAVE_SPI
+    select HAVE_SERIAL
+    select HAVE_I2C
+    select HAVE_USB
+    select HAVE_ADC
+    select HAVE_CAN
+    help
+      Support for the Atmel SAM3U4 microcontroller

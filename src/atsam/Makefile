@@ -9,6 +9,9 @@ dirs-$(CONFIG_MACH_SAM4S) += lib/sam4s/gcc
 dirs-$(CONFIG_MACH_SAM4E) += lib/sam4e/gcc
 dirs-$(CONFIG_MACH_SAME70) += lib/same70b/gcc
 
+# Add directory for SAM3U4
+dirs-$(CONFIG_MACH_SAM3U4) += lib/sam3u4/gcc
+
 MCU := $(shell echo $(CONFIG_MCU) | tr a-z A-Z)
 
 CFLAGS-$(CONFIG_MACH_SAM3X) += -mcpu=cortex-m3 -falign-loops=16
@@ -18,10 +21,18 @@ CFLAGS-$(CONFIG_MACH_SAM3X) += -Ilib/sam3x/include
 CFLAGS-$(CONFIG_MACH_SAM4S) += -Ilib/sam4s/include
 CFLAGS-$(CONFIG_MACH_SAM4E) += -Ilib/sam4e/include
 CFLAGS-$(CONFIG_MACH_SAME70) += -Ilib/same70b/include
+
+# Add CFLAGS for SAM3U4
+CFLAGS-$(CONFIG_MACH_SAM3U4) += -mcpu=cortex-m3 -Ilib/sam3u4/include
+
 CFLAGS += $(CFLAGS-y) -D__$(MCU)__ -mthumb -Ilib/cmsis-core -Ilib/fast-hash
 
 samlink-y := $(OUT)src/generic/armcm_link.ld
 samlink-$(CONFIG_MACH_SAME70) := $(OUT)src/atsam/same70_link.ld
+
+# Add linker script for SAM3U4
+samlink-$(CONFIG_MACH_SAM3U4) := $(OUT)src/atsam/sam3u4_link.ld
+
 CFLAGS_klipper.elf += -nostdlib -lgcc -lc_nano -T $(samlink-y)
 $(OUT)klipper.elf: $(samlink-y)
 
@@ -47,18 +58,22 @@ src-$(CONFIG_MACH_SAM4S) += atsam/sam4s_sysinit.c
 src-$(CONFIG_MACH_SAM4E) += ../lib/sam4e/gcc/system_sam4e.c
 src-$(CONFIG_MACH_SAME70) += atsam/same70_sysinit.c atsam/sam4e_afec.c
 
+# Add source files for SAM3U4
+src-$(CONFIG_MACH_SAM3U4) += atsam/adc.c atsam/hard_pwm.c
+src-$(CONFIG_MACH_SAM3U4) += ../lib/sam3u4/gcc/system_sam3u4.c
+
 # Build the additional bin output file
 target-y += $(OUT)klipper.bin
 
 $(OUT)klipper.bin: $(OUT)klipper.elf
-	@echo "  Creating bin file $@"
-	$(Q)$(OBJCOPY) -O binary $< $@
+    @echo "  Creating bin file $@"
+    $(Q)$(OBJCOPY) -O binary $< $@
 
 # Flash rules
 lib/bossac/bin/bossac:
-	@echo "  Building bossac"
-	$(Q)make -C lib/bossac bin/bossac
+    @echo "  Building bossac"
+    $(Q)make -C lib/bossac bin/bossac
 
 flash: $(OUT)klipper.bin lib/bossac/bin/bossac
-	@echo "  Flashing $< to $(FLASH_DEVICE)"
-	$(Q)$(PYTHON) ./scripts/flash_usb.py -t $(CONFIG_MCU) -d "$(FLASH_DEVICE)" $(OUT)klipper.bin
+    @echo "  Flashing $< to $(FLASH_DEVICE)"
+    $(Q)$(PYTHON) ./scripts/flash_usb.py -t $(CONFIG_MCU) -d "$(FLASH_DEVICE)" $(OUT)klipper.bin
